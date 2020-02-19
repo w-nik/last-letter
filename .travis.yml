@@ -3,6 +3,7 @@ solution: LastLetter.sln
 mono: none
 dotnet: 3.0.100
 sudo: false
+after_success: coveralls
 branches:
   only:
   - master
