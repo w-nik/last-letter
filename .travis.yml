@@ -1,0 +1,13 @@
+language csharp
+solution: LastLetter.sln
+mono: none
+dotnet: 3.0.0
+sudo: false
+branches:
+  only:
+  - master
+  - develop
+script:
+  - dotnet restore
+  - dotnet build
+  - dotnet test ./tests/Game.UnitTests -c Release -f netcoreapp3.0

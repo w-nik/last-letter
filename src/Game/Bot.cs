@@ -6,13 +6,13 @@ namespace Game
 {
     public class Bot : IPlayer
     {
-        private readonly IList<string> _words = new List<string>();
+        private readonly IList<string> _words;
 
         private string _lastWord = "";
 
-        public Bot()
+        public Bot(IList<string> dictionary = null)
         {
-            InitDictionary();
+            _words = dictionary ?? InitDictionary();
         }
 
         public string NextWord()
@@ -21,8 +21,11 @@ namespace Game
 
             if (string.IsNullOrEmpty(_lastWord))
             {
-                var rand = new Random().Next(0, _words.Count);
-                word = _words[rand];
+                if (_words.Count > 0)
+                {
+                    var rand = new Random().Next(0, _words.Count);
+                    word = _words[rand];
+                }
             }
             else
             {
@@ -47,11 +50,9 @@ namespace Game
         {
         }
 
-        private void InitDictionary()
+        private IList<string> InitDictionary()
         {
-            _words.Add("friend");
-            _words.Add("key");
-            _words.Add("network");
+            return new List<string> {"friend", "key", "network"};
         }
     }
 }
