@@ -3,12 +3,13 @@ solution: LastLetter.sln
 mono: none
 dotnet: 3.0.100
 sudo: false
-after_success: coveralls
 branches:
   only:
   - master
   - develop
 script:
+  - dotnet tool install -g coveralls.net --version 0.7.0
   - dotnet restore
   - dotnet build
   - dotnet test ./tests/Game.UnitTests -c Release -f netcoreapp3.0
+after_success: coveralls

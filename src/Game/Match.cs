@@ -1,58 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Game
 {
+    [Serializable]
     public class Match
     {
         private readonly List<IPlayer> _players = new List<IPlayer>();
-        private readonly Random _dice;
         private readonly WordDictionary _dictionary;
-        private readonly List<string> _words = new List<string>();
-        
-        private event Action<string> WordAcceptedNotification = s => {};
+        private readonly ISet<string> _usedWords = new HashSet<string>();
 
-        public Match(User user, WordDictionary dictionary)
+        private int turn = 0;
+
+        [NonSerialized]
+        private Random _dice = new Random();
+
+        [field: NonSerialized]
+        private event Action<string> WordAcceptedNotification = s => { };
+
+        public IList<string> GameLog { get; } = new List<string>();
+
+        public Match(User user, Bot bot, WordDictionary dictionary)
         {
-            var bot = new Bot();
             _players.Add(user);
             _players.Add(bot);
             WordAcceptedNotification += user.WordAccepted;
             WordAcceptedNotification += bot.WordAccepted;
 
-            _dice = new Random();
             _dictionary = dictionary;
+
+            OrderPlayers();
         }
 
-        public void PlayGame()
+        public void Play()
         {
-            OrderPlayers();
-
             while (true)
             {
-                for (int i = 0; i < _players.Count; i++)
+                for (; turn < _players.Count; turn++)
                 {
                     do
                     {
-                        var word = _players[i].NextWord();
+                        var word = _players[turn].NextWord();
 
                         if (string.IsNullOrEmpty(word))
                         {
-                            _players[i].EndGame("You lose...");
-                            WordAcceptedNotification -= _players[i].WordAccepted;
-                            _players.RemoveAt(i);
+                            _players[turn].EndGame("You lose...");
+                            WordAcceptedNotification -= _players[turn].WordAccepted;
+                            _players.RemoveAt(turn);
                             break;
                         }
 
-                        if (_dictionary.Verify(word) && !_words.Contains(word))
+                        if (_dictionary.Verify(word) && !_usedWords.Contains(word))
                         {
-                            _words.Add(word);
+                            _usedWords.Add(word);
+                            GameLog.Add(word);
                             WordAcceptedNotification(word);
                             break;
                         }
                         else
                         {
-                            _players[i].WordRejected(word);
+                            GameLog.Add($"{word} - rejected");
+                            _players[turn].WordRejected(word);
                         }
 
                     } while (true);
@@ -63,7 +72,16 @@ namespace Game
                     _players[0].EndGame("You win!");
                     break;
                 }
+
+                turn = 0;
             }
+        }
+
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            _dice = new Random();
+            _players.ForEach(p => WordAcceptedNotification += p.WordAccepted);
         }
 
         private void OrderPlayers()

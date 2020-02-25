@@ -1,28 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace Game
 {
+    [Serializable]
     public class WordDictionary
     {
-        private readonly IList<string> _words = new List<string>();
+        private readonly IDictionary<string, IList<string>> _dictionary;
 
-        public WordDictionary()
+        public WordDictionary(IDictionaryProvider dictProvider, string dictionaryLocation)
         {
-            InitDictionary();
+            _dictionary = dictProvider.GetDictionary(dictionaryLocation);
         }
 
         public bool Verify(string word)
         {
-            return _words.Contains(word);
-        }
+            var firstLetter = word.First().ToString().ToUpper();
+            if (!_dictionary.ContainsKey(firstLetter))
+                return false;
 
-        private void InitDictionary()
-        {
-            _words.Add("design");
-            _words.Add("friend");
-            _words.Add("key");
-            _words.Add("network");
-            _words.Add("yacht");
+            return _dictionary[firstLetter].Contains(word, StringComparer.OrdinalIgnoreCase);
         }
     }
 }
