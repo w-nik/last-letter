@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace Game
 {
-    [Serializable]
+    [JsonObject]
     public class Bot : IPlayer
     {
+        [JsonProperty]
         private IDictionary<string, IList<string>> _words;
+        [JsonProperty]
         private string _lastWord = "";
+
+        [JsonConstructor]
+        private Bot()
+        {
+        }
 
         public Bot(IDictionaryProvider dictProvider, string dictLocation)
         {

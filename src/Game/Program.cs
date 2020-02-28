@@ -13,26 +13,24 @@ namespace Game
     {
         static void Main(string[] args)
         {
+            var gameSaves = Directory.GetCurrentDirectory() + "\\" + "lastLetterSaves.json";
+
             Match match = null;
 
-            if (File.Exists("/savedGames.gd"))
+            var settings = new JsonSerializerSettings()
             {
-                BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Open("/savedGames.gd", FileMode.Open);
-                match = (Match)bf.Deserialize(file);
-                file.Close();
+                TypeNameHandling = TypeNameHandling.All
+            };
+
+            if (File.Exists(gameSaves))
+            {
+                var text = File.ReadAllText(gameSaves);
+                match = JsonConvert.DeserializeObject<Match>(text, settings);
             }
 
             try
             {
-                if (match == null)
-                {
-                    match = new Match(
-                        new User(),
-                        new Bot(new FileDictionaryProvider(), "shortDictionary.json"),
-                        new WordDictionary(new FileDictionaryProvider(), "extendedDictionary.json"));
-                }
-                else
+                if (match != null)
                 {
                     foreach (var text in match.GameLog)
                     {
@@ -40,22 +38,49 @@ namespace Game
                     }
                 }
 
+                match = match ?? new Match(
+                            new User(),
+                            new Bot(new FileDictionaryProvider(), "shortDictionary.json"),
+                            new WordDictionary(new FileDictionaryProvider(), "extendedDictionary.json"));
+
                 match.Play();
             }
             catch (Exception e)
             {
-                Console.WriteLine("Match failed due to unexpected error.", e);
+                Console.WriteLine($"Match failed due to unexpected error. {e.Message}");
             }
             finally
             {
-                BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Create("/savedGames.gd");
-                bf.Serialize(file, match);
-                file.Close();
+                var text = JsonConvert.SerializeObject(match, settings);
+                File.WriteAllText(gameSaves, text);
             }
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
+        }
+    }
+
+    [JsonObject]
+    class Players
+    {
+        [JsonProperty]
+        private readonly IList<IPlayer> _players;
+
+        [JsonConstructor]
+        private Players()
+        {
+            
+        }
+
+        public Players(Bot bot, User user)
+        {
+            _players = new List<IPlayer> {bot, user};
+        }
+
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            var p = _players.ToList();
         }
     }
 }

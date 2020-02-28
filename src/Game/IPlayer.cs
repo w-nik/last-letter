@@ -1,4 +1,6 @@
-﻿namespace Game
+﻿using Newtonsoft.Json;
+
+namespace Game
 {
     public interface IPlayer
     {

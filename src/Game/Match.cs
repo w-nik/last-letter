@@ -1,25 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace Game
 {
-    [Serializable]
+    [JsonObject]
     public class Match
     {
+        [JsonProperty]
         private readonly List<IPlayer> _players = new List<IPlayer>();
+        [JsonProperty]
         private readonly WordDictionary _dictionary;
+        [JsonProperty]
         private readonly ISet<string> _usedWords = new HashSet<string>();
-
+        [JsonProperty]
         private int turn = 0;
 
-        [NonSerialized]
         private Random _dice = new Random();
-
-        [field: NonSerialized]
         private event Action<string> WordAcceptedNotification = s => { };
 
+        [JsonProperty]
         public IList<string> GameLog { get; } = new List<string>();
+
+        [JsonConstructor]
+        private Match()
+        {
+        }
 
         public Match(User user, Bot bot, WordDictionary dictionary)
         {
@@ -46,6 +53,7 @@ namespace Game
                         if (string.IsNullOrEmpty(word))
                         {
                             _players[turn].EndGame("You lose...");
+                            GameLog.Add($"Player {_players[turn].GetType().Name} lose...");
                             WordAcceptedNotification -= _players[turn].WordAccepted;
                             _players.RemoveAt(turn);
                             break;
@@ -70,6 +78,7 @@ namespace Game
                 if (_players.Count == 1)
                 {
                     _players[0].EndGame("You win!");
+                    GameLog.Add($"Player {_players[turn].GetType().Name} win!");
                     break;
                 }
 

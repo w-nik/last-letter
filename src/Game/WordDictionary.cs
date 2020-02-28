@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 namespace Game
 {
-    [Serializable]
+    [JsonObject]
     public class WordDictionary
     {
+        [JsonProperty]
         private readonly IDictionary<string, IList<string>> _dictionary;
+
+        [JsonConstructor]
+        private WordDictionary()
+        {
+        }
 
         public WordDictionary(IDictionaryProvider dictProvider, string dictionaryLocation)
         {
