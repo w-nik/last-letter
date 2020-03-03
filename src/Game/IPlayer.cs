@@ -4,7 +4,9 @@ namespace Game
 {
     public interface IPlayer
     {
-        string NextWord();
+        string Name { get; }
+
+        Message NextWord(string lastWord);
 
         void WordAccepted(string word);
 

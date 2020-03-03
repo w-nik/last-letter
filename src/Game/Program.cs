@@ -17,10 +17,7 @@ namespace Game
 
             Match match = null;
 
-            var settings = new JsonSerializerSettings()
-            {
-                TypeNameHandling = TypeNameHandling.All
-            };
+            var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
 
             if (File.Exists(gameSaves))
             {
@@ -33,15 +30,13 @@ namespace Game
                 if (match != null)
                 {
                     foreach (var text in match.GameLog)
-                    {
                         Console.WriteLine(text);
-                    }
                 }
 
                 match = match ?? new Match(
                             new User(),
                             new Bot(new FileDictionaryProvider(), "shortDictionary.json"),
-                            new WordDictionary(new FileDictionaryProvider(), "extendedDictionary.json"));
+                            new State(new WordDictionary(new FileDictionaryProvider(), "extendedDictionary.json")));
 
                 match.Play();
             }
@@ -57,30 +52,6 @@ namespace Game
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
-        }
-    }
-
-    [JsonObject]
-    class Players
-    {
-        [JsonProperty]
-        private readonly IList<IPlayer> _players;
-
-        [JsonConstructor]
-        private Players()
-        {
-            
-        }
-
-        public Players(Bot bot, User user)
-        {
-            _players = new List<IPlayer> {bot, user};
-        }
-
-        [OnDeserialized]
-        internal void OnDeserializedMethod(StreamingContext context)
-        {
-            var p = _players.ToList();
         }
     }
 }

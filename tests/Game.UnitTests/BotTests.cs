@@ -40,10 +40,11 @@ namespace Game.UnitTests
             var bot = new Bot(_providerMock.Object, "dictionaryLocation");
 
             // Act
-            var word = bot.NextWord();
+            var message = bot.NextWord("");
 
             // Assert
-            string.IsNullOrEmpty(word).Should().BeFalse();
+            string.IsNullOrEmpty(message.Text).Should().BeFalse();
+            message.Status.Should().Be(Status.Accept);
         }
 
         [Fact]
@@ -61,10 +62,11 @@ namespace Game.UnitTests
 
             // Act
             bot.WordRejected(rejected);
-            var word = bot.NextWord();
+            var message = bot.NextWord("foo");
             
             // Assert
-            word.Should().Be(string.Empty);
+            message.Text.Should().Be(string.Empty);
+            message.Status.Should().Be(Status.GiveUp);
         }
 
         [Fact]
@@ -84,10 +86,11 @@ namespace Game.UnitTests
 
             // Act
             bot.WordAccepted("lambda");
-            var word = bot.NextWord();
+            var message = bot.NextWord("");
 
             // Assert
-            word.Should().Be(expectedWord);
+            message.Text.Should().Be(expectedWord);
+            message.Status.Should().Be(Status.Accept);
         }
     }
 }

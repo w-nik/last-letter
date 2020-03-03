@@ -6,22 +6,36 @@ namespace Game
     [JsonObject]
     public class User : IPlayer
     {
-        public string NextWord()
+        public Message NextWord(string lastWord)
         {
-            Console.Write("Your turn: ");
-            var word = Console.ReadLine();
+            Console.Write("User:\t");
 
-            return word;
+            var word = string.Empty;
+
+            do
+            {
+                word = Console.ReadLine();
+            } while (string.IsNullOrEmpty(word));
+
+            if ("sudo give-up".Equals(word))
+                return new Message { Status = Status.GiveUp, Text = string.Empty };
+            else if ("sudo reject".Equals(word))
+                return new Message { Status = Status.Reject, Text = lastWord };
+            else if ("sudo null".Equals(word))
+                throw null;
+
+            return new Message { Status = Status.Accept, Text = word };
         }
+
+        [JsonProperty]
+        public string Name => this.GetType().Name;
 
         public void WordAccepted(string word)
         {
-            Console.WriteLine(word);
         }
 
         public void WordRejected(string word)
         {
-            Console.WriteLine($"Your word [{word}] rejected.");
         }
 
         public void EndGame(string message)

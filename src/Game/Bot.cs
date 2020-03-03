@@ -10,8 +10,6 @@ namespace Game
     {
         [JsonProperty]
         private IDictionary<string, IList<string>> _words;
-        [JsonProperty]
-        private string _lastWord = "";
 
         [JsonConstructor]
         private Bot()
@@ -23,11 +21,14 @@ namespace Game
             _words = dictProvider.GetDictionary(dictLocation);
         }
 
-        public string NextWord()
+        [JsonProperty]
+        public string Name => this.GetType().Name;
+        
+        public Message NextWord(string lastWord)
         {
             string word = "";
 
-            if (string.IsNullOrEmpty(_lastWord))
+            if (string.IsNullOrEmpty(lastWord))
             {
                 if (_words.Count > 0)
                 {
@@ -41,7 +42,7 @@ namespace Game
             }
             else
             {
-                var lastLetter = _lastWord.Last().ToString().ToUpper();
+                var lastLetter = lastWord.Last().ToString().ToUpper();
 
                 if (_words.ContainsKey(lastLetter))
                 {
@@ -49,19 +50,21 @@ namespace Game
                 }
             }
 
-            return word;
+            Console.WriteLine($"Bot:\t{word}");
+
+            if(string.IsNullOrEmpty(word))
+                return new Message { Status = Status.GiveUp, Text = string.Empty };
+
+            return new Message { Status = Status.Accept, Text = word };
         }
 
         public void WordAccepted(string word)
         {
             RemoveWordFromDictionary(word);
-
-            _lastWord = word;
         }
 
         public void WordRejected(string word)
         {
-            Console.WriteLine($"Bot's word [{word}] rejected.");
             RemoveWordFromDictionary(word);
         }
 
@@ -71,12 +74,15 @@ namespace Game
 
         private void RemoveWordFromDictionary(string word)
         {
-            var firstLetter = word.First().ToString().ToUpper();
-
-            if (_words.ContainsKey(firstLetter))
+            if (!string.IsNullOrEmpty(word))
             {
-                _words[firstLetter].Remove(word);
-                if (_words[firstLetter].Count == 0) _words.Remove(firstLetter);
+                var firstLetter = word.First().ToString().ToUpper();
+
+                if (_words.ContainsKey(firstLetter) && _words[firstLetter].Contains(word))
+                {
+                    _words[firstLetter].Remove(word);
+                    if (_words[firstLetter].Count == 0) _words.Remove(firstLetter);
+                }
             }
         }
     }
