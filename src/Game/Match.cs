@@ -15,7 +15,7 @@ namespace Game
         [JsonProperty]
         private readonly State _state;
         [JsonProperty]
-        private readonly IBidirectionalEnumerable<IPlayer> _playersEnum;
+        private readonly PlayersIterator _iterator;
 
         private Random _dice = new Random();
         private event Action<string> WordAcceptedNotification = s => { };
@@ -31,7 +31,7 @@ namespace Game
 
             OrderPlayers(_players);
 
-            _playersEnum = new PlayersEnumerable(_players);
+            _iterator = new PlayersIterator(_players);
 
             WordAcceptedNotification += user.WordAccepted;
             WordAcceptedNotification += bot.WordAccepted;
@@ -49,8 +49,9 @@ namespace Game
 
         public void Play()
         {
-            foreach (IPlayer player in _playersEnum)
+            while (_iterator.MoveNext())
             {
+                var player = _iterator.Current;
                 var message = player.NextWord(_state.LastWord);
 
                 if (message.Status == Status.Accept)
@@ -67,7 +68,7 @@ namespace Game
                         LogLine(player.Name, message.Text, false);
                         WordRejectionNotification(message.Text);
 
-                        _playersEnum.GetEnumerator().Freeze();
+                        _iterator.Freeze();
                     }
                 }
                 else if (message.Status == Status.GiveUp)
@@ -76,18 +77,18 @@ namespace Game
                     _gameLog.Add($"Player {player.Name} lose...");
 
                     WordAcceptedNotification -= player.WordAccepted;
-                    _playersEnum.Remove(player);
+                    _iterator.Remove(player);
                 }
                 else if (message.Status == Status.Reject)
                 {
                     LogLine(player.Name, message.Text, false);
                     WordRejectionNotification(message.Text);
 
-                    _playersEnum.GetEnumerator().MoveBack();
+                    _iterator.MoveBack();
                 }
             }
 
-            _playersEnum.GetEnumerator().Current.EndGame("You win!");
+            _iterator.Current.EndGame("You win!");
         }
 
         [OnDeserialized]
