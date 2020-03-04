@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
@@ -16,21 +15,24 @@ namespace Game
         [JsonProperty]
         private readonly State _state;
         [JsonProperty]
-        private int turn = 0;
+        private readonly IBidirectionalEnumerable<IPlayer> _playersEnum;
 
         private Random _dice = new Random();
         private event Action<string> WordAcceptedNotification = s => { };
         private event Action<string> WordRejectionNotification = s => { };
 
         [JsonConstructor]
-        private Match()
-        {
-        }
+        private Match() { }
 
         public Match(User user, Bot bot, State state)
         {
-            _players.Add(user);
             _players.Add(bot);
+            _players.Add(user);
+
+            OrderPlayers(_players);
+
+            _playersEnum = new PlayersEnumerable(_players);
+
             WordAcceptedNotification += user.WordAccepted;
             WordAcceptedNotification += bot.WordAccepted;
             WordAcceptedNotification += state.WordAccepted;
@@ -41,74 +43,51 @@ namespace Game
 
             _state = state;
 
-            OrderPlayers();
         }
 
         public IList<string> GameLog => new List<string>(_gameLog);
 
         public void Play()
         {
-            while (true)
+            foreach (IPlayer player in _playersEnum)
             {
-                for (; turn < _players.Count; turn++)
+                var message = player.NextWord(_state.LastWord);
+
+                if (message.Status == Status.Accept)
                 {
-                    do
+                    var verified = _state.Verify(message.Text);
+
+                    if (verified)
                     {
-                        var message = _players[turn].NextWord(_state.LastWord);
+                        LogLine(player.Name, message.Text, true);
+                        WordAcceptedNotification(message.Text);
+                    }
+                    else
+                    {
+                        LogLine(player.Name, message.Text, false);
+                        WordRejectionNotification(message.Text);
 
-                        if (message.Status == Status.Accept)
-                        {
-                            var verified = _state.Verify(message.Text);
-
-                            if (verified)
-                            {
-                                _gameLog.Add($"{_players[turn].Name}:\t{message.Text}\t\t[Accepted]");
-                                Console.SetCursorPosition(0, Console.CursorTop - 1);
-                                Console.WriteLine($"{_players[turn].Name}:\t{message.Text}\t\t[Accepted]");
-
-                                WordAcceptedNotification(message.Text);
-                                break;
-                            }
-                            else
-                            {
-                                _gameLog.Add($"{_players[turn].Name}:\t{message.Text}\t\t[Rejected]");
-                                Console.SetCursorPosition(0, Console.CursorTop - 1);
-                                Console.WriteLine($"{_players[turn].Name}:\t{message.Text}\t\t[Rejected]");
-
-                                WordRejectionNotification(message.Text);
-                            }
-                        }
-                        else if (message.Status == Status.GiveUp)
-                        {
-                            _players[turn].EndGame("You lose...");
-                            _gameLog.Add($"Player {_players[turn].Name} lose...");
-
-                            WordAcceptedNotification -= _players[turn].WordAccepted;
-                            _players.RemoveAt(turn);
-                            break;
-                        }
-                        else if (message.Status == Status.Reject)
-                        {
-                            _gameLog.Add($"{_players[turn].Name}:\t{message.Text}\t\t[Rejected]");
-                            Console.SetCursorPosition(0, Console.CursorTop - 1);
-                            Console.WriteLine($"{_players[turn].Name}:\t{message.Text}\t\t[Rejected]");
-
-                            WordRejectionNotification(message.Text);
-                            turn = turn == 0 ? _players.Count - 1 : turn - 1;
-                        }
-
-                    } while (true);
+                        _playersEnum.GetEnumerator().Freeze();
+                    }
                 }
-
-                if (_players.Count == 1)
+                else if (message.Status == Status.GiveUp)
                 {
-                    _players.First().EndGame("You win!");
-                    _gameLog.Add($"Player {_players.First().Name} win!");
-                    break;
-                }
+                    player.EndGame("You lose...");
+                    _gameLog.Add($"Player {player.Name} lose...");
 
-                turn = 0;
+                    WordAcceptedNotification -= player.WordAccepted;
+                    _playersEnum.Remove(player);
+                }
+                else if (message.Status == Status.Reject)
+                {
+                    LogLine(player.Name, message.Text, false);
+                    WordRejectionNotification(message.Text);
+
+                    _playersEnum.GetEnumerator().MoveBack();
+                }
             }
+
+            _playersEnum.GetEnumerator().Current.EndGame("You win!");
         }
 
         [OnDeserialized]
@@ -121,14 +100,24 @@ namespace Game
             _players.ForEach(p => WordRejectionNotification += p.WordRejected);
         }
 
-        private void OrderPlayers()
+        private void OrderPlayers(List<IPlayer> players)
         {
-            _players.Sort(
+            players.Sort(
                 (player1, player2) =>
                 {
                     if (_dice.Next() % 2 == 0) return -1;
                     else return 1;
                 });
+        }
+
+        private void LogLine(string player, string message, bool isAccepted)
+        {
+            var resolution = isAccepted ? "[Accepted]" : "[Rejected]";
+
+            _gameLog.Add($"{player}:\t{message}\t\t{resolution}");
+            
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
+            Console.WriteLine($"{player}:\t{message}\t\t{resolution}");
         }
     }
 }

@@ -18,9 +18,7 @@ namespace Game
         private bool _accepted;
 
         [JsonConstructor]
-        private State()
-        {
-        }
+        private State() { }
 
         public State(WordDictionary dictionary)
         {
@@ -56,7 +54,7 @@ namespace Game
         {
             _rejectedWords.Add(word);
 
-            if (_acceptedWords.Last() == word)
+            if (_acceptedWords.Any() && _acceptedWords.Last() == word)
                 _acceptedWords.Remove(word);
 
             //if (_accepted)

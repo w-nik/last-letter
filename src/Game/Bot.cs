@@ -12,9 +12,7 @@ namespace Game
         private IDictionary<string, IList<string>> _words;
 
         [JsonConstructor]
-        private Bot()
-        {
-        }
+        private Bot() { }
 
         public Bot(IDictionaryProvider dictProvider, string dictLocation)
         {
