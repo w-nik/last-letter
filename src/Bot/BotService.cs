@@ -2,28 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core;
-using Newtonsoft.Json;
 
-namespace GameOfWords
+namespace Bot
 {
-    [Obsolete]
-    [JsonObject]
-    public class Bot : IPlayer
+    public class BotService : IPlayerService
     {
-        [JsonProperty]
-        private IDictionary<string, IList<string>> _words;
+        private readonly IDictionary<string, IList<string>> _words;
+        private int _matchId = -1;
 
-        [JsonConstructor]
-        private Bot() { }
-
-        public Bot(IDictionaryProvider dictProvider, string dictLocation)
+        public BotService(IDictionaryProvider dictProvider, string dictLocation)
         {
             _words = dictProvider.GetDictionary(dictLocation);
         }
 
-        [JsonProperty]
-        public string Name => this.GetType().Name;
-        
         public Message NextWord(string lastWord)
         {
             string word = "";
@@ -50,9 +41,7 @@ namespace GameOfWords
                 }
             }
 
-            Console.WriteLine($"Bot:\t{word}");
-
-            if(string.IsNullOrEmpty(word))
+            if (string.IsNullOrEmpty(word))
                 return new Message { Status = Status.GiveUp, Text = string.Empty };
 
             return new Message { Status = Status.Accept, Text = word };
@@ -69,7 +58,14 @@ namespace GameOfWords
         }
 
         public void EndGame(string message)
+        { }
+
+        public bool VerifyMatch(int matchId)
         {
+            if (_matchId < 0)
+                _matchId = matchId;
+
+            return _matchId == matchId;
         }
 
         private void RemoveWordFromDictionary(string word)

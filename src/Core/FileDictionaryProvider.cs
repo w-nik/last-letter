@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core;
 using Newtonsoft.Json;
 
-namespace GameOfWords
+namespace Core
 {
     public class FileDictionaryProvider: IDictionaryProvider
     {

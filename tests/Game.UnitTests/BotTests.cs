@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Core;
 using FluentAssertions;
+using GameOfWords;
 using Moq;
 using Xunit;
 

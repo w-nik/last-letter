@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core;
 using Newtonsoft.Json;
 
-namespace Game
+namespace GameOfWords
 {
     [JsonObject]
     public class WordDictionary

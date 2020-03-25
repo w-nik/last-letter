@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
+using Core;
 using Newtonsoft.Json;
+using Polly;
 
-namespace Game
+namespace GameOfWords
 {
     [JsonObject]
     public class Match
     {
         [JsonProperty]
-        private readonly List<IPlayer> _players = new List<IPlayer>();
+        private readonly List<IRemotePlayer> _players = new List<IRemotePlayer>();
         [JsonProperty]
         private readonly IList<string> _gameLog = new List<string>();
         [JsonProperty]
@@ -18,41 +23,36 @@ namespace Game
         private readonly PlayersIterator _iterator;
 
         private Random _dice = new Random();
-        private event Action<string> WordAcceptedNotification = s => { };
-        private event Action<string> WordRejectionNotification = s => { };
+        private event Func<string, string, Task> WordAcceptedNotification = (p, w) => Task.CompletedTask;
+        private event Func<string, string, Task> WordRejectionNotification = (p, w) => Task.CompletedTask;
 
         [JsonConstructor]
         private Match() { }
 
-        public Match(User user, Bot bot, State state)
+        public Match(int id, IRemotePlayer user, IRemotePlayer bot, State state)
         {
+            Id = id;
+            _iterator = new PlayersIterator(_players);
+            _state = state;
+            
             _players.Add(bot);
             _players.Add(user);
 
             OrderPlayers(_players);
-
-            _iterator = new PlayersIterator(_players);
-
-            WordAcceptedNotification += user.WordAccepted;
-            WordAcceptedNotification += bot.WordAccepted;
-            WordAcceptedNotification += state.WordAccepted;
-
-            WordRejectionNotification += user.WordRejected;
-            WordRejectionNotification += bot.WordRejected;
-            WordRejectionNotification += state.WordRejected;
-
-            _state = state;
-
+            Subscribe();
         }
+
+        public int Id { get; }
 
         public IList<string> GameLog => new List<string>(_gameLog);
 
-        public void Play()
+        public async Task Play()
         {
             while (_iterator.MoveNext())
             {
                 var player = _iterator.Current;
-                var message = player.NextWord(_state.LastWord);
+
+                var message = player.NextWord(_state.LastWord).Result;
 
                 if (message.Status == Status.Accept)
                 {
@@ -60,20 +60,20 @@ namespace Game
 
                     if (verified)
                     {
-                        LogLine(player.Name, message.Text, true);
-                        WordAcceptedNotification(message.Text);
+                        _gameLog.Add($"{player}:\t{message}\t\t[Accept]");
+                        await WordAcceptedNotification(player.Name, message.Text);
                     }
                     else
                     {
-                        LogLine(player.Name, message.Text, false);
-                        WordRejectionNotification(message.Text);
+                        _gameLog.Add($"{player}:\t{message}\t\t[Reject]");
+                        await WordRejectionNotification(player.Name, message.Text);
 
                         _iterator.Freeze();
                     }
                 }
                 else if (message.Status == Status.GiveUp)
                 {
-                    player.EndGame("You lose...");
+                    await player.EndGame("You lose...");
                     _gameLog.Add($"Player {player.Name} lose...");
 
                     WordAcceptedNotification -= player.WordAccepted;
@@ -81,27 +81,38 @@ namespace Game
                 }
                 else if (message.Status == Status.Reject)
                 {
-                    LogLine(player.Name, message.Text, false);
-                    WordRejectionNotification(message.Text);
+                    _gameLog.Add($"{player}:\t{message}\t\t[Reject]");
+                    await WordRejectionNotification(player.Name, message.Text);
 
                     _iterator.MoveBack();
                 }
             }
 
-            _iterator.Current.EndGame("You win!");
+            await _iterator.Current.EndGame("You win!");
+        }
+
+        public void ResponseFromPlayer(Message message)
+        {
+            _iterator.Current.HandlePlayerResponse(message);
         }
 
         [OnDeserialized]
         internal void OnDeserializedMethod(StreamingContext context)
         {
             _dice = new Random();
+            Subscribe();
+        }
+
+
+        private void Subscribe()
+        {
             WordAcceptedNotification += _state.WordAccepted;
             WordRejectionNotification += _state.WordRejected;
             _players.ForEach(p => WordAcceptedNotification += p.WordAccepted);
             _players.ForEach(p => WordRejectionNotification += p.WordRejected);
         }
 
-        private void OrderPlayers(List<IPlayer> players)
+        private void OrderPlayers(List<IRemotePlayer> players)
         {
             players.Sort(
                 (player1, player2) =>
@@ -109,16 +120,6 @@ namespace Game
                     if (_dice.Next() % 2 == 0) return -1;
                     else return 1;
                 });
-        }
-
-        private void LogLine(string player, string message, bool isAccepted)
-        {
-            var resolution = isAccepted ? "[Accepted]" : "[Rejected]";
-
-            _gameLog.Add($"{player}:\t{message}\t\t{resolution}");
-            
-            Console.SetCursorPosition(0, Console.CursorTop - 1);
-            Console.WriteLine($"{player}:\t{message}\t\t{resolution}");
         }
     }
 }

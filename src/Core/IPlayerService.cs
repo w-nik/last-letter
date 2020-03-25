@@ -1,13 +1,11 @@
 ﻿using System;
-using Core;
+using System.Collections.Generic;
+using System.Text;
 
-namespace GameOfWords
+namespace Core
 {
-    [Obsolete]
-    public interface IPlayer
+    public interface IPlayerService
     {
-        string Name { get; }
-
         Message NextWord(string lastWord);
 
         void WordAccepted(string word);
@@ -15,5 +13,7 @@ namespace GameOfWords
         void WordRejected(string word);
 
         void EndGame(string message);
+
+        bool VerifyMatch(int matchId);
     }
 }

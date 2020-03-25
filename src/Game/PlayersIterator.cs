@@ -1,20 +1,21 @@
 ﻿using System.Collections.Generic;
+using Core;
 using Newtonsoft.Json;
 
-namespace Game
+namespace GameOfWords
 {
     [JsonObject]
     public class PlayersIterator
     {
         [JsonProperty]
-        private readonly IList<IPlayer> _players;
+        private readonly IList<IRemotePlayer> _players;
         [JsonProperty]
         private int _turn = -1;
 
         [JsonConstructor]
         private PlayersIterator() { }
 
-        public PlayersIterator(IList<IPlayer> players)
+        public PlayersIterator(IList<IRemotePlayer> players)
         {
             _players = players;
         }
@@ -40,9 +41,9 @@ namespace Game
             _turn = _turn == 0 ? _players.Count - 1 : _turn - 1;
         }
 
-        public IPlayer Current { get; private set; }
+        public IRemotePlayer Current { get; private set; }
 
-        public bool Remove(IPlayer player)
+        public bool Remove(IRemotePlayer player)
         {
             return _players.Remove(player);
         }

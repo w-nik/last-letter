@@ -1,18 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Game", "src\Game\Game.csproj", "{4396AC45-07A5-47FF-997B-FD393D6D4B20}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameOfWords", "src\Game\GameOfWords.csproj", "{4396AC45-07A5-47FF-997B-FD393D6D4B20}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CAE1F83C-502B-45D6-927C-FDB12BBAEC14}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19525E63-3A8A-4D55-BE63-A68B83B6B869}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.UnitTests", "tests\Game.UnitTests\Game.UnitTests.csproj", "{52F97730-F1FB-4366-B35F-DBC34F4D7923}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Game.UnitTests", "tests\Game.UnitTests\Game.UnitTests.csproj", "{52F97730-F1FB-4366-B35F-DBC34F4D7923}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4396AC45-07A5-47FF-997B-FD393D6D4B20} = {4396AC45-07A5-47FF-997B-FD393D6D4B20}
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "src\Core\Core.csproj", "{728B3475-AEF0-4569-BAFD-ECBB79F7E1DE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bot", "src\Bot\Bot.csproj", "{A333B79B-18F3-4E93-B3EF-F43BD3EE41A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "User", "src\User\User.csproj", "{8B7736E1-F01C-481F-A563-431BAFBD6AF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +34,18 @@ Global
 		{52F97730-F1FB-4366-B35F-DBC34F4D7923}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52F97730-F1FB-4366-B35F-DBC34F4D7923}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52F97730-F1FB-4366-B35F-DBC34F4D7923}.Release|Any CPU.Build.0 = Release|Any CPU
+		{728B3475-AEF0-4569-BAFD-ECBB79F7E1DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{728B3475-AEF0-4569-BAFD-ECBB79F7E1DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{728B3475-AEF0-4569-BAFD-ECBB79F7E1DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{728B3475-AEF0-4569-BAFD-ECBB79F7E1DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A333B79B-18F3-4E93-B3EF-F43BD3EE41A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A333B79B-18F3-4E93-B3EF-F43BD3EE41A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A333B79B-18F3-4E93-B3EF-F43BD3EE41A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A333B79B-18F3-4E93-B3EF-F43BD3EE41A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B7736E1-F01C-481F-A563-431BAFBD6AF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B7736E1-F01C-481F-A563-431BAFBD6AF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B7736E1-F01C-481F-A563-431BAFBD6AF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B7736E1-F01C-481F-A563-431BAFBD6AF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -35,6 +53,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{4396AC45-07A5-47FF-997B-FD393D6D4B20} = {19525E63-3A8A-4D55-BE63-A68B83B6B869}
 		{52F97730-F1FB-4366-B35F-DBC34F4D7923} = {CAE1F83C-502B-45D6-927C-FDB12BBAEC14}
+		{728B3475-AEF0-4569-BAFD-ECBB79F7E1DE} = {19525E63-3A8A-4D55-BE63-A68B83B6B869}
+		{A333B79B-18F3-4E93-B3EF-F43BD3EE41A8} = {19525E63-3A8A-4D55-BE63-A68B83B6B869}
+		{8B7736E1-F01C-481F-A563-431BAFBD6AF7} = {19525E63-3A8A-4D55-BE63-A68B83B6B869}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {729B5044-4121-42CB-B88A-0989CC8D0976}
